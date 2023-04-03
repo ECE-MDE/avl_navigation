@@ -1,0 +1,32 @@
+<launch>
+
+    <!-- =================================================================== -->
+    <!-- Console Logging Settings -->
+    <!-- =================================================================== -->
+    <rosparam param="/logging/console/enable"> true </rosparam>
+    <rosparam param="/logging/console/log_node"> true </rosparam>
+    <rosparam param="/logging/console/log_data"> false </rosparam>
+    <rosparam param="/logging/console/log_debug"> true </rosparam>
+    <rosparam param="/logging/console/log_info"> true </rosparam>
+    <rosparam param="/logging/console/log_warning"> true </rosparam>
+    <rosparam param="/logging/console/log_error"> true </rosparam>
+
+    <!-- =================================================================== -->
+    <!-- File Logging Settings -->
+    <!-- =================================================================== -->
+    <rosparam param="/logging/file/enable"> true </rosparam>
+    <rosparam param="/logging/file/log_node"> true </rosparam>
+    <rosparam param="/logging/file/log_data"> true </rosparam>
+    <rosparam param="/logging/file/log_debug"> true </rosparam>
+    <rosparam param="/logging/file/log_info"> true </rosparam>
+    <rosparam param="/logging/file/log_warning"> true </rosparam>
+    <rosparam param="/logging/file/log_error"> true </rosparam>
+
+    <!-- =================================================================== -->
+    <!-- Nodes -->
+    <!-- =================================================================== -->
+
+    <node name="maneuver_test_node" pkg="avl_navigation" type="maneuver_test_node"
+        required="true" clear_params="true" output="screen"/>
+
+</launch>
