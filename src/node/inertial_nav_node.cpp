@@ -10,6 +10,10 @@
 // Clients:     None
 //
 // Publishers:  nav/inertial_nav (avl_msgs/NavigationMsg)
+//              nav/gps_residual (geometry_msgs/Vector3)
+//              nav/range_residual (geometry/msgs/Vector3)
+//              nav/dvl_residual (geometry/msgs/Vector3)
+//              nav/depth_residual (std_msgs/Float64)
 //
 // Subscribers: device/imu (avl_msgs/ImuMsg)
 //              device/ahrs (avl_msgs/AhrsMsg)
@@ -47,6 +51,8 @@
 #include <avl_msgs/GpsMsg.h>
 #include <avl_msgs/GyrocompassMsg.h>
 using namespace avl_msgs;
+using namespace geometry_msgs;
+using namespace std_msgs;
 
 // Command handler class
 #include <avl_comms/command_handler.h>
@@ -54,6 +60,7 @@ using namespace avl;
 
 // Alias for double vector
 typedef std::vector<double> doubles_t;
+
 
 //==============================================================================
 //                              ENUM DEFINITION
@@ -124,6 +131,10 @@ private:
     bool nav_initialized = false;
     ros::Publisher nav_pub;
     ros::Publisher nav_status_pub;
+    ros::Publisher gps_residual_pub;
+    ros::Publisher range_residual_pub;
+    ros::Publisher dvl_residual_pub;
+    ros::Publisher depth_residual_pub;
 
     // Initialization mode from config file
     InitMode init_mode;
@@ -347,6 +358,14 @@ private:
 
                 log_data("[dvl] %s", info.to_string().c_str());
 
+                // Get residual from info
+                Vector3d dvl_inno = info.innovation.segment(0,3);
+
+                geometry_msgs::Vector3 dvl_res_msg;
+                dvl_res_msg.x = dvl_inno(0);
+                dvl_res_msg.y = dvl_inno(1);
+                dvl_res_msg.z = dvl_inno(2);
+                dvl_residual_pub.publish(dvl_res_msg);
             }
 
         }
@@ -380,6 +399,12 @@ private:
 
             log_data("[depth] %s", info.to_string().c_str());
 
+            // Get depth residual from info
+            double depth_inno = info.innovation(0);
+            std_msgs::Float64 depth_res_msg;
+            depth_res_msg.data = depth_inno;
+            depth_residual_pub.publish(depth_res_msg);          
+
         }
 
     }
@@ -411,6 +436,13 @@ private:
                 range.threshold,
                 range.l_bS_b);
 
+            // Get range residual from info
+            Vector3d range_inno = info.innovation.segment(0,3);
+            geometry_msgs::Vector3 range_res_msg;
+            range_res_msg.x = range_inno(0);
+            range_res_msg.y = range_inno(1);
+            range_res_msg.z = range_inno(2);
+            range_residual_pub.publish(range_res_msg);  
             // Log range information
             VectorXd x = filter->get_state();
             log_data("[range] %d %s %s %s",
@@ -466,6 +498,13 @@ private:
                 Vector3d gps_inno = T_p_rn*info.innovation.segment(0,3);
                 avg_north_err.add_sample(gps_inno(0));
                 avg_east_err.add_sample(gps_inno(1));
+
+                // Residual from gps
+                geometry_msgs::Vector3 gps_res_msg;
+                gps_res_msg.x = gps_inno(0);
+                gps_res_msg.y = gps_inno(1);
+                gps_res_msg.z = gps_inno(2);
+                gps_residual_pub.publish(gps_res_msg);  
 
             }
 
@@ -717,6 +756,11 @@ private:
 
         // Set up the publishers and subscribers
         nav_pub =        node_handle->advertise<NavigationMsg>("nav/inertial_nav", 1);
+        gps_residual_pub = node_handle->advertise<Vector3>("nav/gps_residual", 1);
+        range_residual_pub = node_handle->advertise<Vector3>("nav/range_residual", 1);
+        dvl_residual_pub = node_handle->advertise<Vector3>("nav/dvl_residual", 1);
+        depth_residual_pub = node_handle->advertise<Float64>("nav/depth_residual", 1);
+
         nav_status_pub = node_handle->advertise<std_msgs::Bool>("nav/status", 1, true);
         imu_sub =   node_handle->subscribe("device/imu",      1,  &InertialNavNode::imu_msg_callback, this);
         dvl_sub =   node_handle->subscribe("device/dvl",      1,  &InertialNavNode::dvl_msg_callback, this);
