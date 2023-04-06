@@ -45,6 +45,13 @@ public:
     double get_average();
 
     //--------------------------------------------------------------------------
+    // Name:        get_stddev
+    // Description: Gets the current standard deviation for the moving average.
+    // Returns:     The current standard deviation of the moving average.
+    //--------------------------------------------------------------------------
+    double get_stddev();
+
+    //--------------------------------------------------------------------------
     // Name:        reset
     // Description: Resets the moving average.
     // Arguments:   - N_max: Maximum window size.

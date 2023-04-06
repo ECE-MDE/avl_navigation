@@ -7,6 +7,7 @@
 #include <avl_navigation/algorithm/moving_avg.h>
 
 #include <iostream>
+#include <math.h>
 
 //==============================================================================
 //                              CLASS DEFINITION
@@ -57,6 +58,22 @@ double MovingAvg::get_average()
 
     return avg;
 
+}
+
+//--------------------------------------------------------------------------
+// Name:        get_stddev
+// Description: Gets the current standard deviation for the moving average.
+// Returns:     The current standard deviation of the moving average.
+//--------------------------------------------------------------------------
+double MovingAvg::get_stddev()
+{
+    double avg = this->get_average();
+    double N = static_cast<double>(samples.size());
+    double variance = 0;
+    for(double sample : samples) {
+        variance += pow(sample - avg, 2) / N;
+    }
+    return sqrt(variance);
 }
 
 //------------------------------------------------------------------------------
