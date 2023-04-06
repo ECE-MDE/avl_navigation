@@ -45,6 +45,7 @@
 #include <avl_msgs/PathfinderDvlMsg.h>
 #include <geometry_msgs/Vector3.h>
 #include <std_msgs/Float64.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <std_msgs/Bool.h>
 #include <avl_msgs/MultibeamMsg.h>
 #include <avl_msgs/RangeMsg.h>
@@ -135,6 +136,7 @@ private:
     ros::Publisher range_residual_pub;
     ros::Publisher dvl_residual_pub;
     ros::Publisher depth_residual_pub;
+    ros::Publisher nav_state_cov_pub;
 
     // Initialization mode from config file
     InitMode init_mode;
@@ -318,6 +320,14 @@ private:
             Vector2d avg_pos_err = {avg_north_err.get_average(), avg_east_err.get_average()};
             nav_msg.avg_pos_err = avg_pos_err.norm();
             nav_pub.publish(nav_msg);
+
+            // Create and send navigation state covariances
+            Float64MultiArray nav_state_cov_msg;
+            nav_state_cov_msg.data.resize(P.rows());
+            for(int i = 0; i < P.rows(); i++) {
+                nav_state_cov_msg.data[i] = P(i, i);
+            }
+            nav_state_cov_pub.publish(nav_state_cov_msg);
 
             VectorXd y(6);
             y << w_ib_b, f_ib_b;
@@ -760,6 +770,7 @@ private:
         range_residual_pub = node_handle->advertise<Vector3>("nav/range_residual", 1);
         dvl_residual_pub = node_handle->advertise<Vector3>("nav/dvl_residual", 1);
         depth_residual_pub = node_handle->advertise<Float64>("nav/depth_residual", 1);
+        nav_state_cov_pub = node_handle->advertise<Float64MultiArray>("nav/state_cov", 1);
 
         nav_status_pub = node_handle->advertise<std_msgs::Bool>("nav/status", 1, true);
         imu_sub =   node_handle->subscribe("device/imu",      1,  &InertialNavNode::imu_msg_callback, this);
